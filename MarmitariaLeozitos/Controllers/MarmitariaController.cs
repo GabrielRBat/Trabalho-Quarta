@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using marmitariaLeozitos.Data;
 using marmitariaLeozitos.Models;
-// using marmitariaLeozitos.DTOs;
+using marmitariaLeozitos.DTOs;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 
@@ -142,5 +142,144 @@ namespace marmitariaLeozitos.Controllers
         }
         //MARMITAS - END
 
+        //PEDIDOS
+
+        [HttpGet("buscar-todos-pedidos")]
+        public async Task<IActionResult> GetPedidos() 
+        {
+            var pedidos = await _appDbContext.Pedido
+            .Include(p => p.PedidoMarmita)
+                .ThenInclude(pm => pm.Marmita)
+            .Include(p => p.Usuario)
+            .ToListAsync();
+
+            if(pedidos.Count == 0)
+            {
+                return NotFound("Não foi encontrado nenhum pedido.");
+            }
+            return Ok(pedidos);
+        }
+
+        [HttpPost("criar-pedido")]
+        public async Task<IActionResult> CriarPedido(PedidoDTO dto) 
+        {
+            if(dto == null )
+            {
+                return BadRequest("Dados inválidos!");
+            }
+
+            var pedido = new Pedido
+            {
+                UsuarioId = dto.UsuarioId,
+                Data = DateTime.Now,
+                PedidoMarmita = dto.PedidoMarmita.Select(m => new PedidoMarmita
+                {
+                    MarmitaId = m.MarmitaId,
+                    Quantidade = m.Quantidade
+                }).ToList()
+            };
+
+            _appDbContext.Pedido.Add(pedido);
+            await _appDbContext.SaveChangesAsync();
+
+            return StatusCode(201, pedido);
+        }
+        //PEDIDO - END
+
+        //USUARIO
+        [HttpPost("cadastrar-usuario")]
+        public async Task<IActionResult> CadastrarUsuario(Usuario usuario)
+        {
+            if(usuario == null)
+            {
+                return BadRequest("Dados Inválidos!");
+            }
+            var usuarios = await _appDbContext.Usuario.ToListAsync();
+
+            foreach (var user in usuarios)
+            {
+                if(user.email == usuario.email)
+                {
+                    return BadRequest("Email já está em uso.");
+                }
+            }
+            
+            _appDbContext.Usuario.Add(usuario);
+            await _appDbContext.SaveChangesAsync();
+            return StatusCode(201, usuario);
+        }
+
+        //Essa rota é utilizada pra atribuir um logradouro a um usuário já que o usuário recebe null de padrão
+        [HttpPut("alterar-usuario/{id}")]
+        public async Task<IActionResult> UpdateUsuario(int id, Logradouro logradouro)
+        {
+
+            if (logradouro == null)
+            {
+                return BadRequest("Dados inválidos.");
+            }
+
+            var usuario = await _appDbContext.Usuario.FindAsync(id);
+            if (usuario == null)
+            {
+                return NotFound("Usuario não encontrado.");
+            }
+            _appDbContext.Logradouro.Add(logradouro);
+            await _appDbContext.SaveChangesAsync();
+
+            usuario.LogradouroId = logradouro.Id;
+
+            _appDbContext.Usuario.Update(usuario);
+            await _appDbContext.SaveChangesAsync();
+
+            return Ok("Logradouro salvo e atribuido a o usuário com sucesso!");
+        }
+
+        [HttpPost("validar-login")]
+        public async Task<IActionResult> CadastrarUsuario([FromBody] JsonElement dados)
+        {
+            string email = dados.GetProperty("email").GetString();
+            string senha = dados.GetProperty("senha").GetString();
+
+            if(senha == null || email == null)
+            {
+                return BadRequest("Dados Inválidos!");
+            }
+
+            var usuarios = await _appDbContext.Usuario.ToListAsync();
+
+        foreach (var user in usuarios)
+            {
+                if(user.senha == senha && user.email == email)
+                {
+                    return Ok(new{
+                        success = true,
+                        message = "Usuário logado com sucesso!",
+                        email = user.email,
+                        tipo = user.tipo, 
+                        id = user.Id
+                    });
+                }
+            }
+
+            return BadRequest("E-mail ou senha incorretos. Tente novamente.");
+        }
+        //USUARIO - FIM
+        //LOGRADOURO
+        [HttpGet("buscar-logradouro/{id}")]
+        public async Task<IActionResult> BuscarLogradouro(int id)
+        {
+            Console.WriteLine($"[DEBUG] ID recebido na rota: {id}");
+            var usuario = await _appDbContext.Usuario.FirstOrDefaultAsync(u => u.Id == id);
+            if(usuario == null)
+            {
+                return BadRequest("Usuário não possui logradouro!" + id);
+            }
+            
+            var logradouro = _appDbContext.Logradouro.FirstOrDefault(l => l.Id == usuario.LogradouroId);
+            return Ok(logradouro);
+        }
+
+        // //LOGRADOURO - FIM
     }
 }
