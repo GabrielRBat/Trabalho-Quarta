@@ -6,7 +6,7 @@ import { useError } from '../Context/ErrorContext';
 import { useMessage } from '../Context/MessageContext';
 
 function CadastrarMarmita() {
-  const [form, setForm] = useState({ descricao: '', valor: '' });
+  const [form, setForm] = useState({ nome: '', descricao: '', valor: '' });
   const [imagem, setImagem] = useState(null);
   const [preview, setPreview] = useState(null);
 
@@ -25,7 +25,7 @@ function CadastrarMarmita() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.descricao || !form.valor || !imagem) {
+    if (!form.nome || !form.descricao || !form.valor || !imagem) {
       showError('Preencha todos os campos e selecione uma imagem!');
       return;
     }
@@ -35,6 +35,7 @@ function CadastrarMarmita() {
     try {
       // Para backend com FormData (upload real de arquivo)
       const formData = new FormData();
+      formData.append('nome', form.nome);
       formData.append('descricao', form.descricao);
       formData.append('valor', parseFloat(form.valor));
       formData.append('imagem', imagem);
@@ -44,7 +45,7 @@ function CadastrarMarmita() {
       });
 
       showMessage('Marmita cadastrada com sucesso!');
-      setForm({ descricao: '', valor: '' });
+      setForm({ nome: '', descricao: '', valor: '' });
       setImagem(null);
       setPreview(null);
     } catch (error) {
@@ -64,10 +65,21 @@ function CadastrarMarmita() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block mb-1 text-gray-700 font-medium">Descrição</label>
+            <label className="block mb-1 text-gray-700 font-medium">Nome</label>
             <input
               type="text"
               placeholder="Ex: Frango à Parmegiana"
+              value={form.nome}
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Descrição</label>
+            <input
+              type="text"
+              placeholder="Ex: 200g de arroz..."
               value={form.descricao}
               onChange={(e) => setForm({ ...form, descricao: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"

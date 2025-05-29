@@ -1,9 +1,15 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import MarmitaItemCard from "./MarmitaItemCard.jsx";
+import { useMessage } from '../Context/MessageContext';
+import Message from "./Message.jsx";
+
 
 function MarmitaCard({ searchTerm }) {
   const [marmitas, setMarmitas] = useState([]);
+  const [marmitaAdded, setMarmitaAdd] = useState("");
+  const { showMessage, message, clearMessage } = useMessage();
+
 
   useEffect(() => {
     const buscarMarmitas = async () => {
@@ -29,10 +35,17 @@ function MarmitaCard({ searchTerm }) {
     buscarMarmitas();
   }, [searchTerm]); 
 
+  useEffect(() => {
+    if (marmitaAdded) {
+      showMessage(`Item ${marmitaAdded} adicionado ao carrinho!`);
+    }
+  }, [marmitaAdded]);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
+      {message && <Message msg = {message} onClose={clearMessage}/>}
       {marmitas.map((marmita) => (
-        <MarmitaItemCard key={marmita.id} marmita={marmita} />
+        <MarmitaItemCard key={marmita.id} marmita={marmita} setMarmitaAdd={setMarmitaAdd} />
       ))}
     </div>
   );

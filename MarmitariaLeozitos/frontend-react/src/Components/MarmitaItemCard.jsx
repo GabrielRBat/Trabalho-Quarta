@@ -3,7 +3,7 @@ import { useCart } from "../Context/CartContext"; //  importante
 import Tilt from 'react-parallax-tilt';
 
 
-function MarmitaItemCard({ marmita}) {
+function MarmitaItemCard({ marmita, setMarmitaAdd }) {
   const [quantidade, setQuantidade] = useState(1);
   const { addToCart } = useCart(); // pega a função do contexto
 
@@ -13,6 +13,7 @@ function MarmitaItemCard({ marmita}) {
   const handleAdd = () => {
     addToCart(marmita, quantidade); // adiciona ao carrinho
     setQuantidade(1); // opcional: reseta
+    setMarmitaAdd(marmita.nome)
   };
 
   return (
@@ -28,7 +29,8 @@ function MarmitaItemCard({ marmita}) {
         className="h-36 w-full object-cover"
       />
       <div className="p-4 text-center">
-        <h3 className="text-lg font-bold text-gray-800 mb-1">{marmita.descricao}</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-1">{marmita.nome}</h3>
+        <p className="text-gray-600 font-semibold mb-3">{marmita.descricao}</p>
         <p className="text-red-600 font-semibold mb-3">R$ {marmita.valor.toFixed(2)}</p>
 
         <div className="flex justify-center items-center gap-4 mb-3">
