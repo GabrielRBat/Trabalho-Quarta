@@ -209,6 +209,21 @@ namespace marmitariaLeozitos.Controllers
             return StatusCode(201, usuario);
         }
 
+        [HttpGet("buscar-usuario/{id}")]
+        public async Task<IActionResult> BuscarUsuarioPorId(int id)
+        {
+            var usuario = await _appDbContext.Usuario.FindAsync(id);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            return Ok(new {
+                nome = usuario.nome,
+                email = usuario.email
+            });
+        }
+
         //Essa rota é utilizada pra atribuir um logradouro a um usuário já que o usuário recebe null de padrão
         [HttpPut("alterar-usuario/{id}")]
         public async Task<IActionResult> UpdateUsuario(int id, Logradouro logradouro)
