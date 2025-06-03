@@ -1,0 +1,6 @@
+@marmitariaLeozitos_HostAddress = http://localhost:5294
+
+GET {{marmitariaLeozitos_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
